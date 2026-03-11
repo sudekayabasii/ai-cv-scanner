@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap } from "lucide-react";
+import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart } from "lucide-react";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -36,8 +36,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#f1f5f9] py-12 px-4 flex flex-col">
+      <div className="max-w-4xl mx-auto flex-grow">
         {/* Başlık Alanı */}
         <header className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-200 text-white">
@@ -138,6 +138,15 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* --- BURAYI EKLEDİK: KÜÇÜK İMZA ALANI --- */}
+      <footer className="w-full max-w-4xl mx-auto mt-16 pt-8 border-t border-slate-200 text-center text-xs text-slate-400 font-medium">
+        <p className="flex items-center justify-center gap-1.5">
+          Geliştirici: <span className="font-bold text-slate-600">Sude Kayabaşı</span>
+          <Heart size={12} className="text-rose-400 fill-rose-400" /> | © 2026
+        </p>
+      </footer>
+      {/* --------------------------------------- */}
     </div>
   );
 }
