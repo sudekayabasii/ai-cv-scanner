@@ -1,34 +1,18 @@
 "use client";
-import React, { useState } from "react";
-import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart, Mail, ShieldAlert } from "lucide-react";
-
-interface AnalysisData {
-  is_valid?: boolean;
-  error_message?: string;
-  score?: number;
-  strengths?: string[];
-  weaknesses?: string[];
-  suggestions?: string[];
-  cover_letter?: string;
-}
+import { useState } from "react";
+import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart, Mail } from "lucide-react";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
-  const [jobDescription, setJobDescription] = useState<string>("");
-  const [data, setData] = useState<AnalysisData | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [jobDescription, setJobDescription] = useState("");
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  // ÖNEMLİ: Linkin sonundaki /analyze-cv kısmını unutma!
   const BACKEND_URL = "https://cv-analiz-backend-o3je.onrender.com/analyze-cv";
 
   const handleAnalyze = async () => {
-    if (!file || !jobDescription) {
-      alert("Lütfen hem CV yükleyin hem de iş tanımını girin!");
-      return;
-    }
+    if (!file) return alert("Lütfen bir PDF dosyası seçin!");
     setLoading(true);
-    setData(null);
-    
     const formData = new FormData();
     formData.append("file", file);
     formData.append("job_description", jobDescription);
@@ -38,78 +22,84 @@ export default function Home() {
       const result = await res.json();
       setData(result);
     } catch (e) {
-      alert("Bağlantı hatası! Sunucu uyanıyor olabilir, lütfen 1 dakika sonra tekrar deneyin.");
+      alert("Hata: Analiz tamamlanamadı. Lütfen biraz bekleyip tekrar deneyin.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#f8fafc] py-12 px-4 flex flex-col font-sans">
+      <div className="max-w-4xl mx-auto flex-grow w-full">
         <header className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-2xl mb-4 shadow-xl text-white">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-2xl mb-4 shadow-lg text-white">
             <Zap size={32} />
           </div>
-          <h1 className="text-4xl font-bold mb-2 text-white">AI Talent Scanner 🚀</h1>
-          <p className="text-slate-400">CV&apos;nizi saniyeler içinde analiz edin.</p>
+          <h1 className="text-4xl font-extrabold text-slate-900 mb-2">AI Talent Scanner</h1>
+          <p className="text-slate-600 font-medium text-lg">CV&apos;nizi saniyeler içinde ATS uyumlu hale getirin.</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-            <label className="block font-bold mb-4 flex items-center gap-2"><FileText size={20}/> CV Seç (PDF)</label>
-            <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-400" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+             <label className="flex items-center gap-2 font-bold mb-4 text-slate-800 text-lg">
+               <FileText className="text-blue-500" size={24}/> CV Yükleyin (PDF)
+             </label>
+             <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:bg-blue-50 file:text-blue-700 file:border-0 file:rounded-xl file:px-4 file:py-2 file:font-bold" />
           </div>
-          <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-            <label className="block font-bold mb-4 flex items-center gap-2"><Target size={20}/> İş Tanımı</label>
-            <textarea value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} className="w-full h-24 bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="İlanı yapıştırın..." />
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+             <label className="flex items-center gap-2 font-bold mb-4 text-slate-800 text-lg">
+               <Target className="text-rose-500" size={24}/> Hedef İş Tanımı
+             </label>
+             <textarea value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="İş ilanını buraya yapıştırın..." className="w-full h-24 p-4 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 bg-slate-50 text-sm" />
           </div>
         </div>
 
-        <button onClick={handleAnalyze} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-bold text-lg transition-all disabled:opacity-50">
-          {loading ? "Yapay Zeka İnceliyor..." : "Analizi Başlat"}
+        <button onClick={handleAnalyze} disabled={loading} className="w-full bg-slate-900 hover:bg-black text-white font-black py-5 rounded-3xl transition-all shadow-xl disabled:opacity-50 text-xl flex items-center justify-center gap-3">
+          {loading ? "Yapay Zeka Analiz Ediyor..." : <><Trophy size={24}/> ANALİZİ BAŞLAT</>}
         </button>
 
-        {data?.is_valid === false && (
-          <div className="mt-8 bg-red-900/20 border border-red-500/50 p-6 rounded-2xl text-center">
-            <ShieldAlert className="mx-auto text-red-500 mb-2" size={40} />
-            <p className="text-red-200">{data.error_message}</p>
-          </div>
-        )}
-
-        {data?.is_valid && (
-          <div className="mt-12 space-y-6">
-            <div className="bg-slate-800 p-8 rounded-3xl text-center border border-slate-700">
-              <div className="text-6xl font-black text-blue-500 mb-2">{data.score}%</div>
-              <p className="text-slate-400 uppercase tracking-widest text-xs font-bold">Uyumluluk Skoru</p>
+        {data && (
+          <div className="space-y-8 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            {/* Skor Kartı */}
+            <div className="bg-white p-10 rounded-[40px] shadow-xl border border-slate-100 text-center">
+              <div className="text-8xl font-black text-blue-600 mb-2">{data.score}%</div>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Genel Uyumluluk</p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-emerald-900/20 p-6 rounded-2xl border border-emerald-500/30">
-                <h3 className="font-bold text-emerald-400 mb-4 flex items-center gap-2"><CheckCircle size={18}/> Güçlü Yanlar</h3>
-                <ul className="text-sm space-y-2 text-emerald-100">
-                  {data.strengths?.map((s, i) => <li key={i}>• {s}</li>)}
+
+            {/* Güçlü ve Zayıf Yanlar */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100">
+                <h3 className="flex items-center gap-2 text-emerald-800 font-bold text-xl mb-6"><CheckCircle size={24}/> Güçlü Yanlar</h3>
+                <ul className="space-y-3 text-emerald-700 font-medium">
+                  {data.strengths?.map((s: string, i: number) => <li key={i}>• {s}</li>)}
                 </ul>
               </div>
-              <div className="bg-rose-900/20 p-6 rounded-2xl border border-rose-500/30">
-                <h3 className="font-bold text-rose-400 mb-4 flex items-center gap-2"><AlertCircle size={18}/> Eksikler</h3>
-                <ul className="text-sm space-y-2 text-rose-100">
-                  {data.weaknesses?.map((w, i) => <li key={i}>• {w}</li>)}
+              <div className="bg-rose-50 p-8 rounded-3xl border border-rose-100">
+                <h3 className="flex items-center gap-2 text-rose-800 font-bold text-xl mb-6"><AlertCircle size={24}/> Gelişim Alanları</h3>
+                <ul className="space-y-3 text-rose-700 font-medium">
+                  {data.weaknesses?.map((w: string, i: number) => <li key={i}>• {w}</li>)}
                 </ul>
               </div>
             </div>
 
+            {/* Önyazı Kısmı */}
             {data.cover_letter && (
-              <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                <h3 className="font-bold text-blue-400 mb-4 flex items-center gap-2"><Mail size={18}/> Önyazı</h3>
-                <div className="bg-slate-900 p-4 rounded-xl text-sm text-slate-300 whitespace-pre-wrap">{data.cover_letter}</div>
+              <div className="bg-white p-8 rounded-[40px] shadow-lg border border-slate-200">
+                <h3 className="flex items-center gap-3 text-slate-800 font-bold text-2xl mb-6"><Mail className="text-blue-500" /> Profesyonel Önyazı</h3>
+                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 text-slate-700 leading-relaxed text-sm whitespace-pre-wrap font-medium">
+                  {data.cover_letter}
+                </div>
               </div>
             )}
           </div>
         )}
       </div>
-      <footer className="text-center mt-12 text-slate-500 text-sm">
-        Geliştirici: Sude Kayabaşı <Heart size={14} className="inline text-rose-500" />
+
+      <footer className="w-full max-w-4xl mx-auto mt-20 pt-8 border-t border-slate-200 text-center text-slate-400">
+        <p className="font-bold flex items-center justify-center gap-2">
+          Geliştirici: <span className="text-slate-900 underline decoration-blue-500 underline-offset-4">Sude Kayabaşı</span>
+          <Heart size={16} className="text-rose-500 fill-rose-500" /> | © 2026
+        </p>
       </footer>
     </div>
   );
