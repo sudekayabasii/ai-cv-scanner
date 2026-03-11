@@ -36,7 +36,7 @@ export default function Home() {
     formData.append("file", file);
     formData.append("job_description", jobDescription);
 
-    console.log("2. İstek gönderiliyor: ", "https://dashboard.render.com/web/srv-d6ni77ua2pns738te1s0/analyze-cv");
+    console.log("2. İstek gönderiliyor: ", "https://cv-analiz-backend-o3je.onrender.com/analyze-cv");
 
     try {
       const res = await fetch(BACKEND_URL, { 
