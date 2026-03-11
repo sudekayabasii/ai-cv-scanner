@@ -29,30 +29,34 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         for page in pdf_reader.pages:
             cv_text += page.extract_text()
 
+        # Prompt'u aşırı derecede katılaştırdık!
         prompt = f"""
-        Sen üst düzey ve çok katı bir İK uzmanısın. Aşağıdaki 'CV Metni' ve 'İş Tanımı'nı incele.
-        
-        ÖN KONTROL AŞAMASI:
-        1. Kullanıcının yüklediği belge gerçekten bir CV/Özgeçmiş mi? (İçinde yemek tarifi, şarkı sözü, rastgele harfler vb. alakasız şeyler varsa direkt reddet).
-        2. Kullanıcının girdiği 'İş Tanımı' gerçekten bir iş ilanı metni mi? (Sadece 'asdasd' yazılmışsa veya alakasız bir cümleyse reddet).
-        
-        EĞER BELGELERDEN BİRİ BİLE SAÇMA/GEÇERSİZ İSE SADECE ŞU JSON'U DÖNDÜR:
+        Sen son derece acımasız, kuralcı ve taviz vermeyen bir İK Yöneticisisin. 
+        Aşağıda sana bir 'Belge Metni' ve 'İş Tanımı' veriyorum.
+
+        GÖREV 1 - SAHTEKARLIK KONTROLÜ (ÇOK ÖNEMLİ):
+        Önce bu iki veriyi incele. 
+        - Belge metni gerçekten bir CV mi? (İçinde eğitim, deneyim, yetenek gibi şeyler yoksa, boşsa veya alakasız bir metinse CV DEĞİLDİR).
+        - İş Tanımı mantıklı mı? (Sadece 'asdasd', 'qweqwe' yazılmışsa veya saçmaysa GEÇERSİZDİR).
+
+        EĞER BU VERİLERDEN BİRİ BİLE SAÇMAYSA VEYA CV DEĞİLSE, KESİNLİKLE ANALİZ YAPMA! SADECE VE SADECE ŞU JSON'U DÖNDÜR:
         {{
             "is_valid": false,
             "error_message": "Sisteme anlamsız bir belge veya geçersiz bir iş tanımı yüklediniz. Lütfen geçerli bir CV PDF'i ve gerçek bir iş ilanı girerek tekrar deneyin."
         }}
 
-        EĞER HER İKİSİ DE GEÇERLİ VE MANTIKLIYSA TAM ANALİZ YAP VE SADECE ŞU JSON'U DÖNDÜR:
+        GÖREV 2 - GERÇEK ANALİZ (SADECE VERİLER KUSURSUZSA):
+        Eğer veriler gerçekten mantıklı bir CV ve iş ilanıysa, o zaman tam analiz yap ve SADECE şu JSON'u döndür:
         {{
             "is_valid": true,
             "score": 85,
             "strengths": ["Güçlü yan 1", "Güçlü yan 2"],
             "weaknesses": ["Zayıf yan 1", "Zayıf yan 2"],
             "suggestions": ["Öneri 1", "Öneri 2"],
-            "cover_letter": "Bu iş için adayın neden çok uygun olduğunu anlatan profesyonel önyazı."
+            "cover_letter": "Bu iş için adayın neden uygun olduğunu anlatan profesyonel önyazı."
         }}
 
-        CV Metni: {cv_text}
+        Belge Metni: {cv_text}
         
         İş Tanımı: {job_description}
         """
@@ -60,7 +64,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama3-8b-8192",
-            temperature=0.3
+            temperature=0.1 # Yaratıcılığı kıstık ki saçmalamasın, kurallara uysun
         )
 
         result_text = chat_completion.choices[0].message.content
