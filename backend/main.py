@@ -33,27 +33,25 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         Sen son derece acımasız, kuralcı ve analitik bir İK Yöneticisisin. 
         Aşağıda sana bir 'Belge Metni' ve 'İş Tanımı' veriyorum.
 
-        GÖREV 1 - SAHTEKARLIK KONTROLÜ (ÇOK ÖNEMLİ):
-        Önce bu iki veriyi incele. 
-        - Belge metni gerçekten bir CV mi? (İçinde eğitim, deneyim, yetenek gibi şeyler yoksa, boşsa veya alakasız bir metinse CV DEĞİLDİR).
-        - İş Tanımı mantıklı mı? (Sadece 'asdasd', 'qweqwe' yazılmışsa veya saçmaysa GEÇERSİZDİR).
+        GÖREV 1 - SAHTEKARLIK KONTROLÜ:
+        - Belge metni gerçekten bir CV mi? (Eğitim, deneyim yoksa CV DEĞİLDİR).
+        - İş Tanımı mantıklı mı? (Sadece harf yığınlarıysa GEÇERSİZDİR).
 
-        EĞER BU VERİLERDEN BİRİ BİLE SAÇMAYSA VEYA CV DEĞİLSE, SADECE VE SADECE ŞU JSON'U DÖNDÜR:
+        EĞER SAÇMAYSA VEYA CV DEĞİLSE SADECE ŞU JSON'U DÖNDÜR:
         {{
             "is_valid": false,
-            "error_message": "Sisteme anlamsız bir belge veya geçersiz bir iş tanımı yüklediniz. Lütfen geçerli bir CV PDF'i ve gerçek bir iş ilanı girerek tekrar deneyin."
+            "error_message": "Sisteme anlamsız bir belge veya geçersiz bir iş tanımı yüklediniz."
         }}
 
-        GÖREV 2 - HASSAS VE GERÇEKÇİ ANALİZ (SADECE VERİLER KUSURSUZSA):
-        Eğer veriler geçerliyse, tam analiz yap. PUANLAMA (score) KONUSUNDA ÇOK HASSAS OL:
-        - ASLA 80, 85, 90 gibi yuvarlak ve ezbere sayılar verme!
-        - İş ilanındaki anahtar kelimeler ile CV'deki yetenekleri eşleştir. Deneyim yıllarını karşılaştır.
-        - Sonucu kesinlikle matematiksel bir oran olarak hesapla. (Örneğin: 34, 47, 62, 73, 88, 91 gibi çok spesifik ve gerçekçi bir tamsayı olsun).
+        GÖREV 2 - HASSAS ANALİZ VE PUANLAMA:
+        Eğer veriler geçerliyse, tam analiz yap. PUANLAMA (score) İÇİN KATI KURALLAR:
+        1. Anahtar kelimeleri ve deneyim yıllarını eşleştirerek matematiksel bir oran çıkar.
+        2. ASLA 80, 85, 90, 95 gibi yuvarlak ve ezbere sayılar verme! İş ilanına tam uymuyorsa acımasızca 34, 47, 58 gibi düşük puanlar ver. Uyumluysa 73, 82, 91 gibi spesifik küsuratlı sayılar ver.
         
-        SADECE şu formattaki JSON'u döndür:
+        SADECE şu formattaki geçerli JSON'u döndür (Kopya çekme, score kısmına KENDİ HESAPLADIĞIN spesifik bir tam sayı yaz!):
         {{
             "is_valid": true,
-            "score": 73, 
+            "score": [BURAYA_HESAPLADIĞIN_SPESİFİK_SAYIYI_YAZ_ÖRNEĞİN_63], 
             "strengths": ["Güçlü yan 1", "Güçlü yan 2"],
             "weaknesses": ["Zayıf yan 1", "Zayıf yan 2"],
             "suggestions": ["Öneri 1", "Öneri 2"],
