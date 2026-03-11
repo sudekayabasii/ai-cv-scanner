@@ -30,29 +30,41 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
             cv_text += page.extract_text()
 
         prompt = f"""
-        Aşağıdaki CV'yi ve iş tanımını analiz et.
-        LÜTFEN SADECE VE SADECE AŞAĞIDAKİ FORMATTA GEÇERLİ BİR JSON DÖNDÜR. BAŞKA HİÇBİR METİN YAZMA:
+        Sen üst düzey ve çok katı bir İK uzmanısın. Aşağıdaki 'CV Metni' ve 'İş Tanımı'nı incele.
+        
+        ÖN KONTROL AŞAMASI:
+        1. Kullanıcının yüklediği belge gerçekten bir CV/Özgeçmiş mi? (İçinde yemek tarifi, şarkı sözü, rastgele harfler vb. alakasız şeyler varsa direkt reddet).
+        2. Kullanıcının girdiği 'İş Tanımı' gerçekten bir iş ilanı metni mi? (Sadece 'asdasd' yazılmışsa veya alakasız bir cümleyse reddet).
+        
+        EĞER BELGELERDEN BİRİ BİLE SAÇMA/GEÇERSİZ İSE SADECE ŞU JSON'U DÖNDÜR:
         {{
+            "is_valid": false,
+            "error_message": "Sisteme anlamsız bir belge veya geçersiz bir iş tanımı yüklediniz. Lütfen geçerli bir CV PDF'i ve gerçek bir iş ilanı girerek tekrar deneyin."
+        }}
+
+        EĞER HER İKİSİ DE GEÇERLİ VE MANTIKLIYSA TAM ANALİZ YAP VE SADECE ŞU JSON'U DÖNDÜR:
+        {{
+            "is_valid": true,
             "score": 85,
             "strengths": ["Güçlü yan 1", "Güçlü yan 2"],
             "weaknesses": ["Zayıf yan 1", "Zayıf yan 2"],
             "suggestions": ["Öneri 1", "Öneri 2"],
-            "cover_letter": "Bu iş için adayın neden çok uygun olduğunu anlatan, profesyonel, etkileyici ve akıcı bir Önyazı (Cover Letter) metni. Metin doğrudan İK yöneticisine hitaben yazılmalıdır."
+            "cover_letter": "Bu iş için adayın neden çok uygun olduğunu anlatan profesyonel önyazı."
         }}
 
-        CV: {cv_text}
+        CV Metni: {cv_text}
+        
         İş Tanımı: {job_description}
         """
 
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama3-8b-8192",
-            temperature=0.5
+            temperature=0.3
         )
 
         result_text = chat_completion.choices[0].message.content
         
-        # JSON formatını güvenli ayıklama
         start_idx = result_text.find('{')
         end_idx = result_text.rfind('}') + 1
         if start_idx != -1 and end_idx != -1:
