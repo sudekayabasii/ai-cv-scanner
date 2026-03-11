@@ -30,32 +30,30 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
             cv_text += page.extract_text()
 
         prompt = f"""
-        Sen son derece acımasız, kuralcı ve analitik bir İK Yöneticisisin. 
-        Aşağıda sana bir 'Belge Metni' ve 'İş Tanımı' veriyorum.
+        Sen duygusuz, tamamen matematiksel çalışan bir eşleştirme algoritmasısın. Kibar veya yapıcı olmak zorunda değilsin. Gerçek neyse onu rakamlara dök.
 
-        GÖREV 1 - SAHTEKARLIK KONTROLÜ:
-        - Belge metni gerçekten bir CV mi? (Eğitim, deneyim yoksa CV DEĞİLDİR).
-        - İş Tanımı mantıklı mı? (Sadece harf yığınlarıysa GEÇERSİZDİR).
-
-        EĞER SAÇMAYSA VEYA CV DEĞİLSE SADECE ŞU JSON'U DÖNDÜR:
+        KURAL 1 - GEÇERLİLİK KONTROLÜ:
+        Eğer belge gerçek bir CV değilse (eğitim/deneyim içermiyorsa) veya iş tanımı anlamsızsa (örn: 'asdasd'), SADECE şunu döndür:
         {{
             "is_valid": false,
-            "error_message": "Sisteme anlamsız bir belge veya geçersiz bir iş tanımı yüklediniz."
+            "error_message": "Geçersiz belge veya iş ilanı."
         }}
 
-        GÖREV 2 - HASSAS ANALİZ VE PUANLAMA:
-        Eğer veriler geçerliyse, tam analiz yap. PUANLAMA (score) İÇİN KATI KURALLAR:
-        1. Anahtar kelimeleri ve deneyim yıllarını eşleştirerek matematiksel bir oran çıkar.
-        2. ASLA 80, 85, 90, 95 gibi yuvarlak ve ezbere sayılar verme! İş ilanına tam uymuyorsa acımasızca 34, 47, 58 gibi düşük puanlar ver. Uyumluysa 73, 82, 91 gibi spesifik küsuratlı sayılar ver.
-        
-        SADECE şu formattaki geçerli JSON'u döndür (Kopya çekme, score kısmına KENDİ HESAPLADIĞIN spesifik bir tam sayı yaz!):
+        KURAL 2 - MATEMATİKSEL PUANLAMA (ÇOK ÖNEMLİ):
+        Eğer veriler geçerliyse, "score" değerini şu katı algoritmaya göre hesapla:
+        - SEKTÖR UYUMSUZLUĞU: CV'deki meslek ile İlandaki meslek tamamen alakasızsa (Örn: CV Yazılımcı, İlan Garson veya Doktor), SCORE KESİNLİKLE 5 ile 25 arasında olmalıdır!
+        - YETENEK EKSİKLİĞİ: İlandaki anahtar kelimeler (örn: iOS, React, Pazarlama vb.) CV'de yoksa, her eksik kelime için puan kır. İstenenlerin hiçbiri yoksa score KESİNLİKLE 10 ile 30 arasında olmalıdır!
+        - SADECE VE SADECE CV ile İlan %100 örtüşüyorsa 80 üzerine çıkabilirsin.
+        - ASLA ezbere 80 veya 85 verme. Alakasız durumlarda acımasızca 12, 18, 24, 33 gibi puanlar ver.
+
+        SONUÇ FORMATI (SADECE JSON):
         {{
             "is_valid": true,
-            "score": [BURAYA_HESAPLADIĞIN_SPESİFİK_SAYIYI_YAZ_ÖRNEĞİN_63], 
-            "strengths": ["Güçlü yan 1", "Güçlü yan 2"],
+            "score": [HESAPLADIĞIN_GERÇEK_MATEMATİKSEL_PUAN],
+            "strengths": ["Eğer varsa 1-2 güçlü yan", "Yoksa 'İlanla eşleşen güçlü yan bulunamadı' yaz"],
             "weaknesses": ["Zayıf yan 1", "Zayıf yan 2"],
             "suggestions": ["Öneri 1", "Öneri 2"],
-            "cover_letter": "Bu iş için adayın neden uygun olduğunu anlatan profesyonel önyazı."
+            "cover_letter": "Bu iş için adayın neden uygun olduğunu anlatan kısa profesyonel önyazı. (Eğer aday tamamen alakasızsa, 'Sayın İK Yöneticisi, bu pozisyon için gerekli temel yetkinliklere sahip olmasam da farklı alanlardaki tecrübelerimle değer katabileceğime inanıyorum...' gibi bir metin yaz)."
         }}
 
         Belge Metni: {cv_text}
@@ -66,7 +64,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama3-8b-8192",
-            temperature=0.2 # Biraz yaratıcılık ekledik ki matematiği daha iyi yapsın
+            temperature=0.0 # DİKKAT: Yaratıcılığı SIFIR YAPTIK! Artık sadece kurala uyacak.
         )
 
         result_text = chat_completion.choices[0].message.content
