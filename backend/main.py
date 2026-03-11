@@ -1,13 +1,9 @@
-import os
-import io
-import json
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
+import PyPDF2
+import os
 from groq import Groq
-import pdfplumber
-from dotenv import load_dotenv
-
-load_dotenv()
+import json
 
 app = FastAPI()
 
@@ -19,41 +15,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY") or "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")
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+@app.get("/")
+def read_root():
+    return {"message": "CV Analiz API Calisiyor!"}
 
 @app.post("/analyze-cv")
-async def analyze_cv(file: UploadFile = File(...), job_description: str = Form("")):
+async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(...)):
     try:
-        contents = await file.read()
-        with pdfplumber.open(io.BytesIO(contents)) as pdf:
-            text = "\n".join([page.extract_text() for page in pdf.pages if page.extract_text()])
+        pdf_reader = PyPDF2.PdfReader(file.file)
+        cv_text = ""
+        for page in pdf_reader.pages:
+            cv_text += page.extract_text()
 
         prompt = f"""
-        Sen bir İK uzmanısın. Aşağıdaki CV'yi analiz et ve sonucu MUTLAKA şu JSON formatında döndür:
+        Aşağıdaki CV'yi ve iş tanımını analiz et.
+        LÜTFEN SADECE VE SADECE AŞAĞIDAKİ FORMATTA GEÇERLİ BİR JSON DÖNDÜR. BAŞKA HİÇBİR METİN YAZMA:
         {{
-            "score": 0-100 arası bir sayı,
-            "summary": "Kısa bir özet",
-            "strengths": ["madde 1", "madde 2"],
-            "weaknesses": ["madde 1", "madde 2"],
-            "suggestions": ["iyileştirme 1", "iyileştirme 2"],
-            "ats_keywords": ["anahtar kelime 1", "anahtar kelime 2"]
+            "score": 85,
+            "strengths": ["Güçlü yan 1", "Güçlü yan 2"],
+            "weaknesses": ["Zayıf yan 1", "Zayıf yan 2"],
+            "suggestions": ["Öneri 1", "Öneri 2"],
+            "cover_letter": "Bu iş için adayın neden çok uygun olduğunu anlatan, profesyonel, etkileyici ve akıcı bir Önyazı (Cover Letter) metni. Metin doğrudan İK yöneticisine hitaben yazılmalıdır."
         }}
 
-        CV Metni: {text}
-        İş İlanı: {job_description if job_description else "Genel Analiz"}
+        CV: {cv_text}
+        İş Tanımı: {job_description}
         """
 
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",
-            response_format={ "type": "json_object" } # JSON döndürmesini zorunlu kılıyoruz
+            model="llama3-8b-8192",
+            temperature=0.5
         )
 
-        return json.loads(chat_completion.choices[0].message.content)
-
+        result_text = chat_completion.choices[0].message.content
+        
+        # JSON formatını güvenli ayıklama
+        start_idx = result_text.find('{')
+        end_idx = result_text.rfind('}') + 1
+        if start_idx != -1 and end_idx != -1:
+            json_str = result_text[start_idx:end_idx]
+        else:
+            json_str = result_text
+            
+        result = json.loads(json_str)
+        return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+        return {"error": str(e)}
