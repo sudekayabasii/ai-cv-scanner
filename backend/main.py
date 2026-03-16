@@ -26,7 +26,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         for page in pdf_reader.pages:
             cv_text += page.extract_text() or ""
 
-        # YAPAY ZEKA 2.0: ATS Checklist ve Dil Analizi eklendi!
+        # Yapay zekaya ŞABLONU KOPYALAMAMASI gerektiğini bağırarak söylüyoruz!
         prompt = f"""
         Aşağıdaki CV'yi ve İş İlanını profesyonel bir İnsan Kaynakları (ATS) sistemi gibi analiz et.
         ÖNEMLİ KURALLAR:
@@ -34,7 +34,8 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         2. TÜM CEVAPLARI KESİNLİKLE TÜRKÇE DİLİNDE YAZ.
         3. "matched_keywords" kısmına ilanda istenen ve CV'de bulunan anahtar kelimeleri yaz.
         4. "missing_keywords" kısmına ilanda istenen ama CV'de EKSİK olan anahtar kelimeleri yaz.
-        5. "language_feedback" kısmına CV'nin dil bilgisi, profesyonelliği ve akademik standartlara (akıcılık, bütünleşik ifade) uygunluğu hakkında 1-2 cümlelik yapıcı bir eleştiri yaz.
+        5. "language_feedback" kısmına CV'nin dil bilgisi, profesyonelliği ve akıcılığı hakkında 1-2 cümlelik yapıcı bir eleştiri yaz.
+        6. EN ÖNEMLİSİ: "cover_letter" kısmındaki metni KOPYALAMA! Adayın CV'sini ve ilanı harmanlayarak, senin ürettiğin UZUN, ÖZGÜN VE PROFESYONEL BİR TÜRKÇE ÖNYAZI yaz!
         
         {{
             "score": (0 ile 100 arası bir sayı),
@@ -43,8 +44,8 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
             "suggestions": ["Türkçe öneri 1", "Türkçe öneri 2"],
             "matched_keywords": ["Kelime 1", "Kelime 2"],
             "missing_keywords": ["Kelime 3", "Kelime 4"],
-            "language_feedback": "Dil değerlendirmesi buraya gelecek...",
-            "cover_letter": "Sayın İlgili, ... (Buraya adaya özel harika bir Türkçe önyazı yazılacak)",
+            "language_feedback": "Dil değerlendirmesi",
+            "cover_letter": "(BU KISMA SENİN YAZDIĞIN YEPYENİ VE UZUN BİR ÖNYAZI GELECEK. Şablonu kopyalama, kendin yaz.)",
             "is_valid": true,
             "error_message": ""
         }}
