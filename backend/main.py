@@ -27,16 +27,39 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         for page in pdf_reader.pages:
             cv_text += page.extract_text() or ""
 
-        prompt = f"CV: {cv_text}\nİlan: {job_description}\nAnaliz et ve JSON döndür: {{'score': 0, 'strengths': [], 'weaknesses': [], 'suggestions': [], 'cover_letter': '', 'is_valid': true}}"
+        # Yapay zekaya kaçış yolu bırakmayan o sert komut
+        prompt = f"""
+        Aşağıdaki CV'yi ve İş İlanını analiz et. 
+        BANA SADECE VE KESİNLİKLE AŞAĞIDAKİ JSON FORMATINDA CEVAP VER. BAŞKA HİÇBİR KELİME, SELAM VEYA AÇIKLAMA YAZMA.
+        
+        {{
+            "score": (0 ile 100 arası bir sayı),
+            "strengths": ["güçlü yan 1", "güçlü yan 2"],
+            "weaknesses": ["zayıf yan 1", "zayıf yan 2"],
+            "suggestions": ["öneri 1", "öneri 2"],
+            "cover_letter": "Örnek önyazı metni",
+            "is_valid": true,
+            "error_message": ""
+        }}
 
+        CV: {cv_text}
+        İlan: {job_description}
+        """
+
+        # Yapay zekanın çenesini kapatan o sihirli "json_object" komutu
         chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": "You are a strict data API. You output ONLY valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
             model="llama-3.1-8b-instant",
-            temperature=0.1
+            temperature=0.1,
+            response_format={"type": "json_object"}
         )
+        
         raw_content = chat_completion.choices[0].message.content
         
-        # Yapay zekanın gevezeliğini atla, sadece { ile başlayıp } ile biten asıl veriyi bul
+        # İşimi yine de sağlama alıyorum
         start_index = raw_content.find('{')
         end_index = raw_content.rfind('}')
         
@@ -45,8 +68,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
             result = json.loads(cleaned_content)
             return result
         else:
-            # Eğer içinde hiç süslü parantez yoksa, yapay zekanın ne saçmaladığını bize göstersin!
-            return {"error": "Yapay zeka geçerli bir format göndermedi.", "ai_gizli_cevap": raw_content}
+            return {"error": "Yapay zeka JSON formatında yanıt vermedi.", "ai_gizli_cevap": raw_content}
 
     except Exception as e:
-        return {"error": f"Sistem Hatası: {str(e)}", "ai_gizli_cevap": raw_content if 'raw_content' in locals() else "Bilinmiyor"}
+        return {"error": f"Sistem Hatası: {str(e)}"}
