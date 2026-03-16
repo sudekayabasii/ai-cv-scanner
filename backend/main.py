@@ -27,38 +27,40 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
             cv_text += page.extract_text() or ""
 
         # PROMPT 4.0: Önyazı Canavarı ve Güvenlik Duvarı
+        # PROMPT 5.0: Hassas Skorlama ve Detaylı Analiz
         prompt = f"""
-        Sen seçkin bir Kariyer Danışmanı ve Kıdemli İK Uzmanısın.
-        Aşağıdaki 'CV' ve 'İlan' metinlerini derinlemesine analiz et.
+        Sen çok titiz bir Teknik İşe Alım Uzmanısın. 
+        Aşağıdaki 'CV' ve 'İlan' metinlerini matematiksel bir kesinlikle analiz et.
 
-        GÖREV 1: GÜVENLİK SÜZGECİ
-        Metinleri oku. Eğer CV metni veya İş İlanı anlamsızsa, çok kısaysa (Örn: sadece 'hahah', 'deneme', 'asdasd' gibi), veya bir özgeçmiş formatında değilse;
-        HİÇBİR ANALİZ YAPMA. Direkt 'is_valid': false döndür.
+        1. GÜVENLİK KONTROLÜ:
+        - Eğer girdiler anlamsızsa (örn: 'hahah') direkt 'is_valid': false döndür.
 
-        GÖREV 2: ANALİZ VE ÖNYAZI (SADECE GİRDİLER GEÇERLİ SE)
-        Eğer her şey yolundaysa, adayı işe aldıracak kadar güçlü bir analiz yap.
-        ÖZELLİKLE "cover_letter" İÇİN TALİMATLAR:
-        - Metin en az 250-300 kelime olmalı.
-        - Asla kısa kesme, 4 paragraflık tam bir mektup oluştur.
-        - İlk paragrafta heyecanını belirt, orta paragraflarda CV'deki teknik başarıları işle, son paragrafta mülakat talebiyle bitir.
-        - Dil: Çok profesyonel, kurumsal ve ikna edici bir Türkçe.
+        2. SKORLAMA ALGORİTMASI (ÇOK HASSAS):
+        Skoru (score) şu kriterlere göre 0-100 arası hesapla:
+        - %50 Anahtar Kelime Uyumu: İlandaki teknik terimlerin CV'de tam karşılığı var mı?
+        - %30 Deneyim Uyumu: İstenen sorumluluklar CV'deki geçmişle örtüşüyor mu?
+        - %20 Dil ve Sunum: Profesyonellik ve akademik standartlar.
+        NOT: Eğer CV ile ilan tamamen alakasızsa 20-30 puanı geçme. Sadece mükemmel eşleşmelere 90+ ver.
 
-        CEVAP FORMATI (KESİNLİKLE JSON):
+        3. ÖNYAZI (COVER LETTER):
+        - En az 4 paragraf, çok profesyonel, aday özelinde ve ikna edici bir metin yaz.
+
+        CEVAP FORMATI (JSON):
         {{
-            "score": (0-100),
-            "strengths": ["Güçlü madde 1", "Güçlü madde 2"],
-            "weaknesses": ["Zayıf madde 1", "Zayıf madde 2"],
-            "suggestions": ["Öneri 1", "Öneri 2"],
-            "matched_keywords": ["Kelime 1", "Kelime 2"],
-            "missing_keywords": ["Kelime 3", "Kelime 4"],
-            "language_feedback": "Dil kalitesi hakkında detaylı yorum.",
-            "cover_letter": "Sayın İşe Alım Yöneticisi, \\n\\n[Buraya çok uzun ve etkileyici bir mektup yaz...]",
+            "score": (Hesapladığın hassas skor),
+            "strengths": ["..."],
+            "weaknesses": ["..."],
+            "suggestions": ["..."],
+            "matched_keywords": ["..."],
+            "missing_keywords": ["..."],
+            "language_feedback": "Neden bu puanı verdiğini açıklayan kısa bir not.",
+            "cover_letter": "Sayın İşe Alım Yöneticisi...",
             "is_valid": true,
             "error_message": ""
         }}
 
-        CV METNİ: {cv_text}
-        İLAN METNİ: {job_description}
+        CV: {cv_text}
+        İlan: {job_description}
         """
 
         chat_completion = client.chat.completions.create(
