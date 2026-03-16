@@ -1,5 +1,4 @@
 "use client";
-// YENİ: useEffect eklendi
 import React, { useState, useEffect } from "react";
 import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart, Mail, ShieldAlert, Check, X, MessageSquare, Search, Download, Moon, Sun } from "lucide-react";
 
@@ -23,7 +22,6 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [darkMode, setDarkMode] = useState<boolean>(false);
 
-  // KESİN ÇÖZÜM: React ile tarayıcının kök dosyasına (HTML) zorla müdahale ediyoruz!
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -71,11 +69,9 @@ export default function Home() {
   };
 
   return (
-    // Dışarıdaki o ekstra div'i sildik, çünkü artık komutu direkt sisteme veriyoruz
     <div className="min-h-screen bg-[#f1f5f9] dark:bg-slate-950 transition-colors duration-300 print:bg-white py-12 print:py-0 px-4 flex flex-col font-sans">
       <div className="max-w-4xl mx-auto flex-grow w-full relative">
         
-        {/* Gece Modu Şalteri */}
         <button 
           onClick={() => setDarkMode(!darkMode)}
           className="absolute right-0 top-0 p-3 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-yellow-400 shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-110 transition-transform print:hidden"
@@ -125,9 +121,19 @@ export default function Home() {
           {loading ? "Yapay Zeka İnceliyor..." : <><Trophy size={20}/> Analizi Başlat</>}
         </button>
 
+        {/* --- YENİ EKLENEN HATA GÖSTERME ALANI (GÜVENLİK KALKANI) --- */}
+        {data && data.is_valid === false && (
+          <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-900/50 p-8 rounded-3xl mb-8 shadow-sm text-center">
+             <div className="inline-flex items-center justify-center p-4 bg-red-100 dark:bg-red-900/40 rounded-full mb-4 text-red-600 dark:text-red-400">
+               <ShieldAlert size={48} />
+             </div>
+             <h3 className="text-2xl font-bold text-red-800 dark:text-red-200 mb-2">Güvenlik Kontrolüne Takıldınız!</h3>
+             <p className="text-red-600 dark:text-red-400 font-medium text-lg">{data.error_message}</p>
+          </div>
+        )}
+
         {data && data.is_valid !== false && data.score !== undefined && (
           <div className="space-y-6">
-            
             <div className="flex justify-end print:hidden">
               <button 
                 onClick={() => window.print()}
