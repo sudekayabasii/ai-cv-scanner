@@ -1,7 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart, Mail, ShieldAlert } from "lucide-react";
+// YENİ İKONLAR EKLENDİ (Check, X, MessageSquare, Search)
+import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart, Mail, ShieldAlert, Check, X, MessageSquare, Search } from "lucide-react";
 
+// YENİ VERİ TİPLERİ EKLENDİ
 interface AnalysisData {
   is_valid?: boolean;
   error_message?: string;
@@ -9,6 +11,9 @@ interface AnalysisData {
   strengths?: string[];
   weaknesses?: string[];
   suggestions?: string[];
+  matched_keywords?: string[];
+  missing_keywords?: string[];
+  language_feedback?: string;
   cover_letter?: string;
 }
 
@@ -112,10 +117,11 @@ export default function Home() {
 
         {data && data.is_valid !== false && data.score !== undefined && (
           <div className="space-y-6">
+            
+            {/* Skor Alanı */}
             <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200 text-center">
               <div className="text-7xl font-black text-blue-600 mb-2">{data.score}%</div>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Genel Uyumluluk</p>
-              {/* İŞTE O İSTEDİĞİN İLERLEME ÇUBUĞU */}
               <div className="w-full bg-slate-100 h-4 rounded-full mt-6 overflow-hidden border border-slate-200">
                 <div 
                   className="bg-gradient-to-r from-blue-500 to-blue-700 h-full transition-all duration-1000" 
@@ -124,6 +130,50 @@ export default function Home() {
               </div>
             </div>
 
+            {/* YENİ: ATS Anahtar Kelime Radarı */}
+            {(data.matched_keywords?.length || data.missing_keywords?.length) ? (
+              <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200">
+                <h3 className="flex items-center gap-2 text-slate-800 font-bold mb-6 text-xl">
+                  <Search className="text-indigo-500" size={24}/> ATS Anahtar Kelime Radarı
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Eşleşenler */}
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                      <Check size={18} className="text-emerald-500"/> Bulunan Yetenekler
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {data.matched_keywords?.map((kw, i) => (
+                        <span key={i} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold border border-emerald-200">
+                          {kw}
+                        </span>
+                      ))}
+                      {(!data.matched_keywords || data.matched_keywords.length === 0) && (
+                        <span className="text-slate-400 text-xs italic font-medium">Eşleşen kelime bulunamadı.</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Eksikler */}
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                      <X size={18} className="text-rose-500"/> Eksik Yetenekler
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {data.missing_keywords?.map((kw, i) => (
+                        <span key={i} className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-xs font-bold border border-rose-100 line-through decoration-rose-300">
+                          {kw}
+                        </span>
+                      ))}
+                      {(!data.missing_keywords || data.missing_keywords.length === 0) && (
+                        <span className="text-slate-400 text-xs italic font-medium">Eksik kelime yok, harika!</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Güçlü ve Zayıf Yanlar */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
                 <h3 className="flex items-center gap-2 text-emerald-800 font-bold mb-4"><CheckCircle size={20}/> Güçlü Yanlar</h3>
@@ -148,7 +198,19 @@ export default function Home() {
               </div>
             </div>
 
-            {/* İŞTE O İSTEDİĞİN YAPAY ZEKA ÖNERİLERİ */}
+            {/* YENİ: Dil ve Profesyonellik Analizi */}
+            {data.language_feedback && (
+              <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 p-6 rounded-2xl border border-violet-100 shadow-sm">
+                <h3 className="flex items-center gap-2 text-violet-800 font-bold mb-3">
+                  <MessageSquare size={20} className="text-violet-500"/> Dil ve Profesyonellik Analizi
+                </h3>
+                <p className="text-violet-900 text-sm font-semibold leading-relaxed">
+                  {data.language_feedback}
+                </p>
+              </div>
+            )}
+
+            {/* Strateji Önerileri */}
             <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200">
               <h3 className="flex items-center gap-2 text-slate-800 font-bold mb-6 text-xl">
                 <Lightbulb className="text-yellow-500" size={24}/> Yapay Zeka Strateji Önerileri
@@ -162,6 +224,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Önyazı */}
             {data.cover_letter && (
               <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-8 rounded-3xl shadow-md border border-indigo-100">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
