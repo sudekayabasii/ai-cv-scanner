@@ -34,8 +34,9 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
             model="llama-3.1-8b-instant",
             temperature=0.1
         )
-
-        result = json.loads(chat_completion.choices[0].message.content)
+        raw_content = chat_completion.choices[0].message.content
+        cleaned_content = raw_content.replace("```json", "").replace("```", "").strip()
+        result = json.loads(cleaned_content)
         return result
     except Exception as e:
         return {"error": str(e)}
