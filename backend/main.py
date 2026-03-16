@@ -28,38 +28,46 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
 
         # Yapay zekaya ŞABLONU KOPYALAMAMASI gerektiğini bağırarak söylüyoruz!
         prompt = f"""
-        Aşağıdaki metinleri profesyonel bir İnsan Kaynakları (ATS) sistemi gibi analiz et.
-        
-        🔴 GÜVENLİK KONTROLÜ (ÇOK ÖNEMLİ):
-        Öncelikle yüklenen 'CV' metninin GERÇEKTEN bir özgeçmiş/CV olup olmadığını ve 'İlan' metninin mantıklı bir iş ilanı olup olmadığını kontrol et. 
-        Eğer kullanıcı alakasız bir dosya (yemek tarifi, fatura, rastgele harfler, alakasız bir hikaye vb.) yüklediyse veya ilan kısmı tamamen anlamsızsa:
-        "is_valid": false yap ve "error_message" kısmına "Lütfen geçerli bir CV ve İş İlanı giriniz. Yüklediğiniz dosya veya metin formatı uygun değil." şeklinde bir uyarı yaz. Skoru 0 yap ve diğer tüm listeleri boş bırak.
-        
-        Eğer her şey normalse (Geçerli bir CV ve İlan ise), "is_valid": true yap ve aşağıdaki analiz kurallarına geç:
+        Sen profesyonel bir İnsan Kaynakları ATS (Aday Takip Sistemi) yapay zekasısın.
+        Aşağıdaki 'CV' ve 'İlan' metinlerini incele.
 
-        ÖNEMLİ KURALLAR:
-        1. BANA SADECE VE KESİNLİKLE AŞAĞIDAKİ JSON FORMATINDA CEVAP VER.
-        2. TÜM CEVAPLARI KESİNLİKLE TÜRKÇE DİLİNDE YAZ.
-        3. "matched_keywords" kısmına ilanda istenen ve CV'de bulunan anahtar kelimeleri yaz.
-        4. "missing_keywords" kısmına ilanda istenen ama CV'de EKSİK olan anahtar kelimeleri yaz.
-        5. "language_feedback" kısmına CV'nin dil bilgisi, profesyonelliği ve akıcılığı hakkında 1-2 cümlelik yapıcı bir eleştiri yaz.
-        6. EN ÖNEMLİSİ: "cover_letter" kısmındaki metni KOPYALAMA! Adayın CV'sini ve ilanı harmanlayarak, senin ürettiğin UZUN, ÖZGÜN VE PROFESYONEL BİR TÜRKÇE ÖNYAZI yaz!
-        
+        GÖREV 1: GÜVENLİK KONTROLÜ
+        Kullanıcı gerçekten bir özgeçmiş ve mantıklı bir iş ilanı girmiş mi? 
+        (Örneğin ilan kısmına sadece "hahah", "deneme" yazılmışsa veya CV tamamen alakasız/boş bir belgeyse bu GEÇERSİZDİR).
+
+        GÖREV 2: JSON YANITI (KESİN KURAL)
+        Bana SADECE JSON formatında cevap ver. Başka hiçbir açıklama yazma.
+
+        🔴 DURUM A - EĞER GİRDİLER ALAKASIZ VEYA GEÇERSİZ İSE, HİÇ DÜŞÜNMEDEN TAM OLARAK ŞU JSON'U DÖNDÜR:
         {{
-            "score": (0 ile 100 arası bir sayı),
-            "strengths": ["Türkçe güçlü yan 1", "Türkçe güçlü yan 2"],
-            "weaknesses": ["Türkçe zayıf yan 1", "Türkçe zayıf yan 2"],
-            "suggestions": ["Türkçe öneri 1", "Türkçe öneri 2"],
-            "matched_keywords": ["Kelime 1", "Kelime 2"],
-            "missing_keywords": ["Kelime 3", "Kelime 4"],
-            "language_feedback": "Dil değerlendirmesi",
-            "cover_letter": "(Senin yazdığın orijinal önyazı)",
+            "score": 0,
+            "strengths": [],
+            "weaknesses": [],
+            "suggestions": [],
+            "matched_keywords": [],
+            "missing_keywords": [],
+            "language_feedback": "",
+            "cover_letter": "",
+            "is_valid": false,
+            "error_message": "Güvenlik İhlali: Lütfen geçerli bir CV ve anlamlı bir İş İlanı giriniz. Girdiğiniz bilgiler anlamsız veya eksik."
+        }}
+
+        🟢 DURUM B - EĞER GİRDİLER GEÇERLİ BİR CV VE İLAN İSE, ANALİZ YAP VE ŞU FORMATTA JSON DÖNDÜR:
+        {{
+            "score": (0 ile 100 arası),
+            "strengths": ["Güçlü yan 1", "Güçlü yan 2"],
+            "weaknesses": ["Zayıf yan 1", "Zayıf yan 2"],
+            "suggestions": ["Öneri 1", "Öneri 2"],
+            "matched_keywords": ["Eşleşen 1"],
+            "missing_keywords": ["Eksik 1"],
+            "language_feedback": "Dil bilgisi şöyledir...",
+            "cover_letter": "Sayın İlgili, (Özgün Türkçe önyazı)",
             "is_valid": true,
             "error_message": ""
         }}
 
-        CV: {cv_text}
-        İlan: {job_description}
+        CV METNİ: {cv_text}
+        İLAN METNİ: {job_description}
         """
 
         chat_completion = client.chat.completions.create(
