@@ -28,7 +28,15 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
 
         # Yapay zekaya ŞABLONU KOPYALAMAMASI gerektiğini bağırarak söylüyoruz!
         prompt = f"""
-        Aşağıdaki CV'yi ve İş İlanını profesyonel bir İnsan Kaynakları (ATS) sistemi gibi analiz et.
+        Aşağıdaki metinleri profesyonel bir İnsan Kaynakları (ATS) sistemi gibi analiz et.
+        
+        🔴 GÜVENLİK KONTROLÜ (ÇOK ÖNEMLİ):
+        Öncelikle yüklenen 'CV' metninin GERÇEKTEN bir özgeçmiş/CV olup olmadığını ve 'İlan' metninin mantıklı bir iş ilanı olup olmadığını kontrol et. 
+        Eğer kullanıcı alakasız bir dosya (yemek tarifi, fatura, rastgele harfler, alakasız bir hikaye vb.) yüklediyse veya ilan kısmı tamamen anlamsızsa:
+        "is_valid": false yap ve "error_message" kısmına "Lütfen geçerli bir CV ve İş İlanı giriniz. Yüklediğiniz dosya veya metin formatı uygun değil." şeklinde bir uyarı yaz. Skoru 0 yap ve diğer tüm listeleri boş bırak.
+        
+        Eğer her şey normalse (Geçerli bir CV ve İlan ise), "is_valid": true yap ve aşağıdaki analiz kurallarına geç:
+
         ÖNEMLİ KURALLAR:
         1. BANA SADECE VE KESİNLİKLE AŞAĞIDAKİ JSON FORMATINDA CEVAP VER.
         2. TÜM CEVAPLARI KESİNLİKLE TÜRKÇE DİLİNDE YAZ.
@@ -45,7 +53,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
             "matched_keywords": ["Kelime 1", "Kelime 2"],
             "missing_keywords": ["Kelime 3", "Kelime 4"],
             "language_feedback": "Dil değerlendirmesi",
-            "cover_letter": "(BU KISMA SENİN YAZDIĞIN YEPYENİ VE UZUN BİR ÖNYAZI GELECEK. Şablonu kopyalama, kendin yaz.)",
+            "cover_letter": "(Senin yazdığın orijinal önyazı)",
             "is_valid": true,
             "error_message": ""
         }}
