@@ -27,17 +27,20 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         for page in pdf_reader.pages:
             cv_text += page.extract_text() or ""
 
-        # Yapay zekaya kaçış yolu bırakmayan o sert komut
+        # Yapay zekaya Türkçe ve Önyazı için kesin emirler veriyoruz
         prompt = f"""
         Aşağıdaki CV'yi ve İş İlanını analiz et. 
-        BANA SADECE VE KESİNLİKLE AŞAĞIDAKİ JSON FORMATINDA CEVAP VER. BAŞKA HİÇBİR KELİME, SELAM VEYA AÇIKLAMA YAZMA.
-        
+        ÖNEMLİ KURALLAR:
+        1. BANA SADECE VE KESİNLİKLE AŞAĞIDAKİ JSON FORMATINDA CEVAP VER.
+        2. TÜM CEVAPLARI (güçlü yanlar, zayıf yanlar, öneriler) KESİNLİKLE TÜRKÇE DİLİNDE YAZ.
+        3. "cover_letter" kısmına, adayın CV'sini ve ilanı harmanlayarak işe alım uzmanını etkileyecek PROFESYONEL VE UZUN BİR TÜRKÇE ÖNYAZI METNİ YAZ.
+
         {{
             "score": (0 ile 100 arası bir sayı),
-            "strengths": ["güçlü yan 1", "güçlü yan 2"],
-            "weaknesses": ["zayıf yan 1", "zayıf yan 2"],
-            "suggestions": ["öneri 1", "öneri 2"],
-            "cover_letter": "Örnek önyazı metni",
+            "strengths": ["Türkçe güçlü yan 1", "Türkçe güçlü yan 2"],
+            "weaknesses": ["Türkçe zayıf yan 1", "Türkçe zayıf yan 2"],
+            "suggestions": ["Türkçe öneri 1", "Türkçe öneri 2"],
+            "cover_letter": "Sayın İlgili, ... (Buraya adaya özel harika bir Türkçe önyazı yazılacak)",
             "is_valid": true,
             "error_message": ""
         }}
@@ -46,10 +49,9 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         İlan: {job_description}
         """
 
-        # Yapay zekanın çenesini kapatan o sihirli "json_object" komutu
         chat_completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are a strict data API. You output ONLY valid JSON."},
+                {"role": "system", "content": "You are a strict data API. You output ONLY valid JSON in Turkish."},
                 {"role": "user", "content": prompt}
             ],
             model="llama-3.1-8b-instant",
@@ -59,7 +61,6 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         
         raw_content = chat_completion.choices[0].message.content
         
-        # İşimi yine de sağlama alıyorum
         start_index = raw_content.find('{')
         end_index = raw_content.rfind('}')
         
