@@ -1,9 +1,8 @@
 "use client";
 import React, { useState } from "react";
-// YENİ İKONLAR EKLENDİ (Check, X, MessageSquare, Search)
-import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart, Mail, ShieldAlert, Check, X, MessageSquare, Search } from "lucide-react";
+// YENİ İKON EKLENDİ: Download (İndirme) 
+import { CheckCircle, AlertCircle, Lightbulb, Target, FileText, Trophy, Zap, Heart, Mail, ShieldAlert, Check, X, MessageSquare, Search, Download } from "lucide-react";
 
-// YENİ VERİ TİPLERİ EKLENDİ
 interface AnalysisData {
   is_valid?: boolean;
   error_message?: string;
@@ -62,17 +61,22 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] py-12 px-4 flex flex-col font-sans">
+    // YENİ: print:bg-white ile PDF'te arka planı bembeyaz A4 yapıyoruz
+    <div className="min-h-screen bg-[#f1f5f9] print:bg-white py-12 print:py-0 px-4 flex flex-col font-sans">
       <div className="max-w-4xl mx-auto flex-grow w-full">
-        <header className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-200 text-white">
+        
+        {/* Başlık (PDF'te de görünsün diye bırakıyoruz) */}
+        <header className="text-center mb-12 print:mb-6">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-200 text-white print:shadow-none">
             <Zap size={32} />
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 mb-2">AI Talent Scanner</h1>
-          <p className="text-slate-600 font-medium">CV&apos;nizi saniyeler içinde ATS uyumlu hale getirin.</p>
+          <p className="text-slate-600 font-medium print:hidden">CV&apos;nizi saniyeler içinde ATS uyumlu hale getirin.</p>
+          <p className="hidden print:block text-slate-600 font-medium">Resmi ATS Uyumluluk Raporu</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Yükleme Alanı: PDF çıktısında GİZLENECEK (print:hidden) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 print:hidden">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
              <label className="flex items-center gap-2 font-bold mb-4 text-slate-800">
                <FileText className="text-blue-500" size={20}/> CV Yükleyin (PDF)
@@ -97,10 +101,11 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Analiz Butonu: PDF çıktısında GİZLENECEK (print:hidden) */}
         <button 
           onClick={handleAnalyze} 
           disabled={loading} 
-          className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-2xl transition-all shadow-xl disabled:opacity-50 mb-12 text-lg flex items-center justify-center gap-2 active:scale-[0.98]"
+          className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-2xl transition-all shadow-xl disabled:opacity-50 mb-12 text-lg flex items-center justify-center gap-2 active:scale-[0.98] print:hidden"
         >
           {loading ? "Yapay Zeka İnceliyor..." : <><Trophy size={20}/> Analizi Başlat</>}
         </button>
@@ -115,67 +120,68 @@ export default function Home() {
           </div>
         )}
 
+        {/* SONUÇLAR ALANI */}
         {data && data.is_valid !== false && data.score !== undefined && (
           <div className="space-y-6">
             
+            {/* YENİ: PDF İndir Butonu (Sadece Ekranda Görünür, PDF'te Gizlenir) */}
+            <div className="flex justify-end print:hidden">
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md active:scale-95"
+              >
+                <Download size={20} /> Sonuçları PDF Olarak İndir
+              </button>
+            </div>
+
             {/* Skor Alanı */}
-            <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200 text-center">
+            <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200 text-center print:shadow-none print:border-slate-300">
               <div className="text-7xl font-black text-blue-600 mb-2">{data.score}%</div>
               <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Genel Uyumluluk</p>
-              <div className="w-full bg-slate-100 h-4 rounded-full mt-6 overflow-hidden border border-slate-200">
+              <div className="w-full bg-slate-100 h-4 rounded-full mt-6 overflow-hidden border border-slate-200 print:border-slate-300">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-blue-700 h-full transition-all duration-1000" 
+                  className="bg-gradient-to-r from-blue-500 to-blue-700 h-full transition-all duration-1000 print:bg-blue-600" 
                   style={{ width: `${data.score || 0}%` }}
                 ></div>
               </div>
             </div>
 
-            {/* YENİ: ATS Anahtar Kelime Radarı */}
-            {(data.matched_keywords?.length || data.missing_keywords?.length) ? (
-              <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200">
-                <h3 className="flex items-center gap-2 text-slate-800 font-bold mb-6 text-xl">
-                  <Search className="text-indigo-500" size={24}/> ATS Anahtar Kelime Radarı
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Eşleşenler */}
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                      <Check size={18} className="text-emerald-500"/> Bulunan Yetenekler
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {data.matched_keywords?.map((kw, i) => (
-                        <span key={i} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold border border-emerald-200">
-                          {kw}
-                        </span>
-                      ))}
-                      {(!data.matched_keywords || data.matched_keywords.length === 0) && (
-                        <span className="text-slate-400 text-xs italic font-medium">Eşleşen kelime bulunamadı.</span>
-                      )}
-                    </div>
+            {/* ATS Anahtar Kelime Radarı */}
+            <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200 print:shadow-none print:border-slate-300 print:break-inside-avoid">
+              <h3 className="flex items-center gap-2 text-slate-800 font-bold mb-6 text-xl">
+                <Search className="text-indigo-500" size={24}/> ATS Anahtar Kelime Radarı
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 print:border-slate-300">
+                  <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                    <Check size={18} className="text-emerald-500"/> Bulunan Yetenekler
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {data.matched_keywords?.map((kw, i) => (
+                      <span key={i} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold border border-emerald-200 print:border-emerald-300">
+                        {kw}
+                      </span>
+                    ))}
                   </div>
-                  {/* Eksikler */}
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
-                      <X size={18} className="text-rose-500"/> Eksik Yetenekler
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {data.missing_keywords?.map((kw, i) => (
-                        <span key={i} className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-xs font-bold border border-rose-100 line-through decoration-rose-300">
-                          {kw}
-                        </span>
-                      ))}
-                      {(!data.missing_keywords || data.missing_keywords.length === 0) && (
-                        <span className="text-slate-400 text-xs italic font-medium">Eksik kelime yok, harika!</span>
-                      )}
-                    </div>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 print:border-slate-300">
+                  <h4 className="font-bold text-slate-700 mb-3 flex items-center gap-2 text-sm">
+                    <X size={18} className="text-rose-500"/> Eksik Yetenekler
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {data.missing_keywords?.map((kw, i) => (
+                      <span key={i} className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-xs font-bold border border-rose-100 line-through decoration-rose-300 print:border-rose-300">
+                        {kw}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
-            ) : null}
+            </div>
 
             {/* Güçlü ve Zayıf Yanlar */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:break-inside-avoid">
+              <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 print:border-emerald-300">
                 <h3 className="flex items-center gap-2 text-emerald-800 font-bold mb-4"><CheckCircle size={20}/> Güçlü Yanlar</h3>
                 <ul className="space-y-2">
                   {data.strengths?.map((s: string, i: number) => (
@@ -186,7 +192,7 @@ export default function Home() {
                 </ul>
               </div>
 
-              <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100">
+              <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100 print:border-rose-300">
                 <h3 className="flex items-center gap-2 text-rose-800 font-bold mb-4"><AlertCircle size={20}/> Gelişim Alanları</h3>
                 <ul className="space-y-2">
                   {data.weaknesses?.map((w: string, i: number) => (
@@ -198,9 +204,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* YENİ: Dil ve Profesyonellik Analizi */}
+            {/* Dil ve Profesyonellik Analizi */}
             {data.language_feedback && (
-              <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 p-6 rounded-2xl border border-violet-100 shadow-sm">
+              <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 p-6 rounded-2xl border border-violet-100 shadow-sm print:shadow-none print:border-violet-300 print:break-inside-avoid">
                 <h3 className="flex items-center gap-2 text-violet-800 font-bold mb-3">
                   <MessageSquare size={20} className="text-violet-500"/> Dil ve Profesyonellik Analizi
                 </h3>
@@ -211,13 +217,13 @@ export default function Home() {
             )}
 
             {/* Strateji Önerileri */}
-            <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200">
+            <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200 print:shadow-none print:border-slate-300 print:break-inside-avoid">
               <h3 className="flex items-center gap-2 text-slate-800 font-bold mb-6 text-xl">
                 <Lightbulb className="text-yellow-500" size={24}/> Yapay Zeka Strateji Önerileri
               </h3>
               <div className="grid gap-4">
                 {data.suggestions?.map((s: string, i: number) => (
-                  <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-slate-700 text-sm leading-relaxed border-l-4 border-l-blue-600 font-medium">
+                  <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-slate-700 text-sm leading-relaxed border-l-4 border-l-blue-600 font-medium print:border-slate-300">
                     {s}
                   </div>
                 ))}
@@ -226,19 +232,20 @@ export default function Home() {
 
             {/* Önyazı */}
             {data.cover_letter && (
-              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-8 rounded-3xl shadow-md border border-indigo-100">
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-8 rounded-3xl shadow-md border border-indigo-100 print:shadow-none print:border-indigo-300 print:break-inside-avoid">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <h3 className="flex items-center gap-2 text-indigo-900 font-bold text-xl">
                     <Mail className="text-indigo-500" size={24}/> Özel Önyazı (Cover Letter)
                   </h3>
+                  {/* Kopyala butonu PDF'te görünmesin */}
                   <button 
                     onClick={handleCopy}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2"
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 print:hidden"
                   >
                     <FileText size={16}/> Metni Kopyala
                   </button>
                 </div>
-                <div className="p-6 bg-white rounded-2xl border border-indigo-100 text-slate-700 text-sm leading-relaxed whitespace-pre-wrap shadow-sm font-medium">
+                <div className="p-6 bg-white rounded-2xl border border-indigo-100 text-slate-700 text-sm leading-relaxed whitespace-pre-wrap shadow-sm font-medium print:border-indigo-300">
                   {data.cover_letter}
                 </div>
               </div>
@@ -247,7 +254,7 @@ export default function Home() {
         )}
       </div>
 
-      <footer className="w-full max-w-4xl mx-auto mt-16 pt-8 border-t border-slate-200 text-center text-xs text-slate-400 font-medium">
+      <footer className="w-full max-w-4xl mx-auto mt-16 pt-8 border-t border-slate-200 text-center text-xs text-slate-400 font-medium print:hidden">
         <p className="flex items-center justify-center gap-1.5">
           Geliştirici: <span className="font-bold text-slate-600">Sude Kayabaşı</span>
           <Heart size={12} className="text-rose-400 fill-rose-400" /> | © 2026
