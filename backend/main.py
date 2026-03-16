@@ -76,7 +76,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
                 {"role": "user", "content": prompt}
             ],
             model="llama-3.1-8b-instant",
-            temperature=0.1,
+            temperature=0.0,
             response_format={"type": "json_object"}
         )
         
