@@ -21,25 +21,29 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
         api_key = os.environ.get("GROQ_API_KEY")
         client = Groq(api_key=api_key)
 
-        # PDF Okuma
         pdf_reader = PyPDF2.PdfReader(file.file)
         cv_text = ""
         for page in pdf_reader.pages:
             cv_text += page.extract_text() or ""
 
-        # Yapay zekaya Türkçe ve Önyazı için kesin emirler veriyoruz
+        # YAPAY ZEKA 2.0: ATS Checklist ve Dil Analizi eklendi!
         prompt = f"""
-        Aşağıdaki CV'yi ve İş İlanını analiz et. 
+        Aşağıdaki CV'yi ve İş İlanını profesyonel bir İnsan Kaynakları (ATS) sistemi gibi analiz et.
         ÖNEMLİ KURALLAR:
         1. BANA SADECE VE KESİNLİKLE AŞAĞIDAKİ JSON FORMATINDA CEVAP VER.
-        2. TÜM CEVAPLARI (güçlü yanlar, zayıf yanlar, öneriler) KESİNLİKLE TÜRKÇE DİLİNDE YAZ.
-        3. "cover_letter" kısmına, adayın CV'sini ve ilanı harmanlayarak işe alım uzmanını etkileyecek PROFESYONEL VE UZUN BİR TÜRKÇE ÖNYAZI METNİ YAZ.
-
+        2. TÜM CEVAPLARI KESİNLİKLE TÜRKÇE DİLİNDE YAZ.
+        3. "matched_keywords" kısmına ilanda istenen ve CV'de bulunan anahtar kelimeleri yaz.
+        4. "missing_keywords" kısmına ilanda istenen ama CV'de EKSİK olan anahtar kelimeleri yaz.
+        5. "language_feedback" kısmına CV'nin dil bilgisi, profesyonelliği ve akademik standartlara (akıcılık, bütünleşik ifade) uygunluğu hakkında 1-2 cümlelik yapıcı bir eleştiri yaz.
+        
         {{
             "score": (0 ile 100 arası bir sayı),
             "strengths": ["Türkçe güçlü yan 1", "Türkçe güçlü yan 2"],
             "weaknesses": ["Türkçe zayıf yan 1", "Türkçe zayıf yan 2"],
             "suggestions": ["Türkçe öneri 1", "Türkçe öneri 2"],
+            "matched_keywords": ["Kelime 1", "Kelime 2"],
+            "missing_keywords": ["Kelime 3", "Kelime 4"],
+            "language_feedback": "Dil değerlendirmesi buraya gelecek...",
             "cover_letter": "Sayın İlgili, ... (Buraya adaya özel harika bir Türkçe önyazı yazılacak)",
             "is_valid": true,
             "error_message": ""
@@ -51,7 +55,7 @@ async def analyze_cv(file: UploadFile = File(...), job_description: str = Form(.
 
         chat_completion = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are a strict data API. You output ONLY valid JSON in Turkish."},
+                {"role": "system", "content": "You are an advanced ATS data API. You output ONLY valid JSON in Turkish."},
                 {"role": "user", "content": prompt}
             ],
             model="llama-3.1-8b-instant",
